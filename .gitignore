@@ -1,0 +1,7 @@
+**/node_modules
+**/.DS_Store
+.eslintrc.js
+.env
+**/dist
+src/config/pubsub.json
+src/config/credentials.json
