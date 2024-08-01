@@ -288,8 +288,8 @@ const handleEmailReplies = async (emailAddress, newHistoryId) => {
     if (!tenantUserRecord) {
       throw new ApiError(httpStatus.NOT_FOUND, "User not found at tenantUserRecord");
     }
-    await ensureOAuth2Client(tenantUserRecord._id);
-    // const tenantUser = await setOAuth2Credentials(tenantUserRecord._id);
+    // await ensureOAuth2Client(tenantUserRecord._id);
+    const tenantUser = await setOAuth2Credentials(tenantUserRecord._id);
     const gmail = google.gmail({ version: "v1", auth: oAuth2Client });
 
     // Use the previous historyId stored in the DB
