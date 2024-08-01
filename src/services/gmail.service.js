@@ -234,48 +234,48 @@ const sendEmail = async (tenantUserId, body) => {
 //*** modified OAuth2 listners *** */
 
 // Function to configure OAuth2Client and handle token events
-const configureOAuth2Client = async (tenantUserId) => {
-  const db = new Db("tenantusers");
-  const tenantUser = await db.findOne({ _id: new ObjectId(tenantUserId) });
-  if (!tenantUser) {
-    throw new ApiError(httpStatus.NOT_FOUND, "User not found at configureOAuth2Client");
-  }
+// const configureOAuth2Client = async (tenantUserId) => {
+//   const db = new Db("tenantusers");
+//   const tenantUser = await db.findOne({ _id: new ObjectId(tenantUserId) });
+//   if (!tenantUser) {
+//     throw new ApiError(httpStatus.NOT_FOUND, "User not found at configureOAuth2Client");
+//   }
 
-  oAuth2Client.setCredentials({
-    access_token: tenantUser.googleData.access_token,
-    refresh_token: tenantUser.googleData.refresh_token,
-  });
+//   oAuth2Client.setCredentials({
+//     access_token: tenantUser.googleData.access_token,
+//     refresh_token: tenantUser.googleData.refresh_token,
+//   });
 
-  // Remove existing listener before adding a new one
-  oAuth2Client.removeAllListeners("tokens");
+//   // Remove existing listener before adding a new one
+//   oAuth2Client.removeAllListeners("tokens");
 
-  oAuth2Client.on("tokens", async (tokens) => {
-    if (tokens.refresh_token) {
-      await db.updateOne(
-        { _id: tenantUserId },
-        {
-          $set: {
-            "googleData.access_token": tokens.access_token,
-            "googleData.refresh_token": tokens.refresh_token,
-          },
-        }
-      );
-    } else {
-      await db.updateOne(
-        { _id: tenantUserId },
-        { $set: { "googleData.access_token": tokens.access_token } }
-      );
-    }
-  });
+//   oAuth2Client.on("tokens", async (tokens) => {
+//     if (tokens.refresh_token) {
+//       await db.updateOne(
+//         { _id: tenantUserId },
+//         {
+//           $set: {
+//             "googleData.access_token": tokens.access_token,
+//             "googleData.refresh_token": tokens.refresh_token,
+//           },
+//         }
+//       );
+//     } else {
+//       await db.updateOne(
+//         { _id: tenantUserId },
+//         { $set: { "googleData.access_token": tokens.access_token } }
+//       );
+//     }
+//   });
 
-  return tenantUser;
-};
+//   return tenantUser;
+// };
 
-const ensureOAuth2Client = async (tenantUserId) => {
-  if (!oAuth2Client.credentials || !oAuth2Client.credentials.access_token) {
-    await configureOAuth2Client(tenantUserId);
-  }
-};
+// const ensureOAuth2Client = async (tenantUserId) => {
+//   if (!oAuth2Client.credentials || !oAuth2Client.credentials.access_token) {
+//     await configureOAuth2Client(tenantUserId);
+//   }
+// };
 
 
 
