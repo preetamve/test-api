@@ -409,20 +409,26 @@ const extractBody = (payload) => {
 // };
 
 const extractEmailAddress = (headerValue) => {
+  if (!headerValue) return [];
+
+  // Regular expression to match email addresses within angle brackets
   const emailRegex = /<([^>]+)>/g;
   const matches = [];
   let match;
 
+  // Extract email addresses within angle brackets
   while ((match = emailRegex.exec(headerValue)) !== null) {
     matches.push(match[1]);
   }
 
-  if (matches.length === 0 && headerValue) {
-    return headerValue.split(",").map((email) => email.trim());
+  // If no matches are found, split the header value by commas and trim spaces
+  if (matches.length === 0) {
+    return headerValue.split(",").map(email => email.trim());
   }
 
   return matches;
 };
+
 
 module.exports = {
   getEmailslist,
