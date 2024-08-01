@@ -51,7 +51,7 @@ const watchGmail = async (tenantUserId) => {
     const watchResponse = await gmail.users.watch({
       userId: tenantUser.googleData.profile_id,
       requestBody: {
-        topicName: "projects/nodeauth-429506/topics/gmailapi",
+        topicName: process.env.PUB_SUB_TPOIC,
       },
     });
 
@@ -231,7 +231,7 @@ const sendEmail = async (tenantUserId, body) => {
 };
 
 
-//*** modified OAuth2 listners *** */
+//*** modified OAuth2 listners for handling replies *** */
 
 // Function to configure OAuth2Client and handle token events
 const configureOAuth2Client = async (tenantUserId) => {
