@@ -314,9 +314,9 @@ const handleEmailReplies = async (emailAddress, newHistoryId) => {
               messageId: messageDetails.data.id,
               messageIdHeader: extractHeader(messageDetails.data.payload.headers,"Message-ID"),
               from: extractEmailAddress(extractHeader(messageDetails.data.payload.headers, "From")),
-              to: extractEmailAddress(messageDetails.data.payload.headers,"To"),
-              cc: extractEmailAddress(messageDetails.data.payload.headers,"Cc"),
-              bcc: extractEmailAddress(messageDetails.data.payload.headers,"Bcc"),
+              to: extractEmailAddress(extractHeader(messageDetails.data.payload.headers,"To")),
+              cc: extractEmailAddress(extractHeader(messageDetails.data.payload.headers,"Cc")),
+              bcc: extractEmailAddress(extractHeader(messageDetails.data.payload.headers,"Bcc")),
               subject: extractHeader(messageDetails.data.payload.headers,"Subject"),
               message: extractBody(messageDetails.data.payload),
               labelId: messageDetails.data.labelIds,
@@ -401,12 +401,6 @@ const extractBody = (payload) => {
   }
   return "";
 };
-
-// const extractEmailAddress = (headerValue) => {
-//   const emailRegex = /<([^>]+)>/;
-//   const match = emailRegex.exec(headerValue);
-//   return match ? match[1] : headerValue;
-// };
 
 const extractEmailAddress = (headerValue) => {
   if (!headerValue) return [];
