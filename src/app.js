@@ -41,7 +41,7 @@ app.use(passport.session());
 // })
 
 // add routes
-app.use("/ve", routes);
+app.use("/ve", routes); //v1 can be used
 
 app.get("/", async (req, res) => {
   res.send('<a href="https://api.ve.co/google/1.0/ve/auth/google">Authenticate with Google</a>');

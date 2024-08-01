@@ -262,17 +262,24 @@ const handleEmailReplies = async (emailAddress, newHistoryId) => {
       logger.info(
         `No history to update from this push notification AND new historyId saved: ${historyResponse.data.historyId}`
       );
-      const updateNewHistoryId = await db.updateOne(
+      await db.updateOne(
         { _id: new ObjectId(tenantUserRecord._id) },
         { $set: { "googleData.historyId": historyResponse.data.historyId } }
       );
-      return { updateNewHistoryId: updateNewHistoryId.googleData.historyId };
+      return { updateNewHistoryId: historyResponse.data.historyId };
     }
 
     // const histories = historyResponse.data.history || [];
-    const histories =
-      historyResponse.data.history.filter((history) => history.messagesAdded) ||
-      [];
+    const histories = historyResponse.data.history.filter((history) => {
+      // Check if 'messagesAdded' exists and it doesn't have 'DRAFT' in its 'labelIds'
+      return (
+        history.messagesAdded &&
+        !history.messagesAdded.some((added) =>
+          added.message.labelIds.includes("DRAFT")
+        )
+      );
+    });
+    
     const savedReplies = [];
 
     for (const history of histories) {
