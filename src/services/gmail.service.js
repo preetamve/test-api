@@ -16,7 +16,7 @@ const setOAuth2Credentials = async (tenantUserId) => {
   const db = new Db("tenantusers");
   const tenantUser = await db.findOne({ _id: new ObjectId(tenantUserId) });
   if (!tenantUser) {
-    throw new ApiError(httpStatus.NOT_FOUND, "User not found");
+    throw new ApiError(httpStatus.NOT_FOUND, "User not found at setOAuth2Credentials");
   }
   oAuth2Client.setCredentials({
     access_token: tenantUser.googleData.access_token,
@@ -238,7 +238,7 @@ const configureOAuth2Client = async (tenantUserId) => {
   const db = new Db("tenantusers");
   const tenantUser = await db.findOne({ _id: new ObjectId(tenantUserId) });
   if (!tenantUser) {
-    throw new ApiError(httpStatus.NOT_FOUND, "User not found");
+    throw new ApiError(httpStatus.NOT_FOUND, "User not found at configureOAuth2Client");
   }
 
   oAuth2Client.setCredentials({
@@ -286,9 +286,10 @@ const handleEmailReplies = async (emailAddress, newHistoryId) => {
     const db = new Db("tenantusers");
     const tenantUserRecord = await db.findOne({ email: emailAddress });
     if (!tenantUserRecord) {
-      throw new ApiError(httpStatus.NOT_FOUND, "User not found");
+      throw new ApiError(httpStatus.NOT_FOUND, "User not found at tenantUserRecord");
     }
     await ensureOAuth2Client(tenantUserRecord._id);
+    // const tenantUser = await setOAuth2Credentials(tenantUserRecord._id);
     const gmail = google.gmail({ version: "v1", auth: oAuth2Client });
 
     // Use the previous historyId stored in the DB
