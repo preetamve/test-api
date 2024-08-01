@@ -230,6 +230,56 @@ const sendEmail = async (tenantUserId, body) => {
   }
 };
 
+
+//*** modified OAuth2 listners *** */
+
+// Function to configure OAuth2Client and handle token events
+const configureOAuth2Client = async (tenantUserId) => {
+  const db = new Db("tenantusers");
+  const tenantUser = await db.findOne({ _id: new ObjectId(tenantUserId) });
+  if (!tenantUser) {
+    throw new ApiError(httpStatus.NOT_FOUND, "User not found");
+  }
+
+  oAuth2Client.setCredentials({
+    access_token: tenantUser.googleData.access_token,
+    refresh_token: tenantUser.googleData.refresh_token,
+  });
+
+  // Remove existing listener before adding a new one
+  oAuth2Client.removeAllListeners("tokens");
+
+  oAuth2Client.on("tokens", async (tokens) => {
+    if (tokens.refresh_token) {
+      await db.updateOne(
+        { _id: tenantUserId },
+        {
+          $set: {
+            "googleData.access_token": tokens.access_token,
+            "googleData.refresh_token": tokens.refresh_token,
+          },
+        }
+      );
+    } else {
+      await db.updateOne(
+        { _id: tenantUserId },
+        { $set: { "googleData.access_token": tokens.access_token } }
+      );
+    }
+  });
+
+  return tenantUser;
+};
+
+const ensureOAuth2Client = async (tenantUserId) => {
+  if (!oAuth2Client.credentials || !oAuth2Client.credentials.access_token) {
+    await configureOAuth2Client(tenantUserId);
+  }
+};
+
+
+
+
 const handleEmailReplies = async (emailAddress, newHistoryId) => {
   try {
     logger.info("handleEmailReplies - start");
@@ -238,7 +288,7 @@ const handleEmailReplies = async (emailAddress, newHistoryId) => {
     if (!tenantUserRecord) {
       throw new ApiError(httpStatus.NOT_FOUND, "User not found");
     }
-    const tenantUser = await setOAuth2Credentials(tenantUserRecord._id);
+    await ensureOAuth2Client(tenantUserRecord._id);
     const gmail = google.gmail({ version: "v1", auth: oAuth2Client });
 
     // Use the previous historyId stored in the DB
@@ -251,7 +301,7 @@ const handleEmailReplies = async (emailAddress, newHistoryId) => {
     }
 
     const historyResponse = await gmail.users.history.list({
-      userId: tenantUser.googleData.profile_id,
+      userId: tenantUserRecord.googleData.profile_id,
       startHistoryId: previousHistoryId,
     });
     logger.info(
@@ -289,7 +339,7 @@ const handleEmailReplies = async (emailAddress, newHistoryId) => {
         const message = added.message;
 
         const messageDetails = await gmail.users.messages.get({
-          userId: tenantUser.googleData.profile_id,
+          userId: tenantUserRecord.googleData.profile_id,
           id: message.id,
         });
 
@@ -307,7 +357,7 @@ const handleEmailReplies = async (emailAddress, newHistoryId) => {
 
         const emailDb = new Db("emails");
         const originalEmail = await emailDb.findOne({
-          tenantUserId: new ObjectId(tenantUser._id),
+          tenantUserId: new ObjectId(tenantUserRecord._id),
           messages: { $elemMatch: { messageIdHeader: inReplyToHeader } },
         });
 
@@ -334,7 +384,7 @@ const handleEmailReplies = async (emailAddress, newHistoryId) => {
             await emailDb.updateOne(
               {
                 threadId: messageDetails.data.threadId,
-                tenantUserId: new ObjectId(tenantUser._id),
+                tenantUserId: new ObjectId(tenantUserRecord._id),
               },
               { $push: { messages: emailData } },
               { upsert: true }
